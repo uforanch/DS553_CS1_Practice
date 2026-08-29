@@ -159,60 +159,62 @@ def respond(
         return
 
 
-chatbot = gr.ChatInterface(
-    fn=respond,
-    additional_inputs=[
-        gr.Textbox(
-            value="You are a friendly Chatbot.",
-            label="System message",
-        ),
-        gr.Slider(
-            minimum=1,
-            maximum=2048,
-            value=512,
-            step=1,
-            label="Max new tokens",
-        ),
-        gr.Slider(
-            minimum=0.1,
-            maximum=2.0,
-            value=0.7,
-            step=0.1,
-            label="Temperature",
-        ),
-        gr.Slider(
-            minimum=0.1,
-            maximum=1.0,
-            value=0.95,
-            step=0.05,
-            label="Top-p (nucleus sampling)",
-        ),
-    ],
-)
-
-
-with gr.Blocks(css=fancy_css) as demo:
-    with gr.Sidebar():
-        gr.LoginButton()
-
-    gr.Markdown(
-        "# 🌟 Effective AI Chatbot",
-        elem_id="app-title",
+def build_demo():
+    chatbot = gr.ChatInterface(
+        fn=respond,
+        additional_inputs=[
+            gr.Textbox(
+                value="You are a friendly Chatbot.",
+                label="System message",
+            ),
+            gr.Slider(
+                minimum=1,
+                maximum=2048,
+                value=512,
+                step=1,
+                label="Max new tokens",
+            ),
+            gr.Slider(
+                minimum=0.1,
+                maximum=2.0,
+                value=0.7,
+                step=0.1,
+                label="Temperature",
+            ),
+            gr.Slider(
+                minimum=0.1,
+                maximum=1.0,
+                value=0.95,
+                step=0.05,
+                label="Top-p (nucleus sampling)",
+            ),
+        ],
     )
 
-    gr.Markdown(
-        "A fancier version of the standard Huggging Face chatbot template.",
-        elem_id="app-subtitle",
-    )
-
-    with gr.Column(elem_id="chat-container"):
-        chatbot.render()
+    with gr.Blocks(css=fancy_css) as demo:
+        with gr.Sidebar():
+            gr.LoginButton()
 
         gr.Markdown(
-            "Use **Additional inputs** to switch between the API model and the locally executed model.",
-            elem_id="model-note",
+            "# 🌟 Effective AI Chatbot",
+            elem_id="app-title",
         )
+
+        gr.Markdown(
+            "A fancier version of the standard Huggging Face chatbot template.",
+            elem_id="app-subtitle",
+        )
+
+        with gr.Column(elem_id="chat-container"):
+            chatbot.render()
+
+            gr.Markdown(
+                "Use **Additional inputs** to switch between the API model and the locally executed model.",
+                elem_id="model-note",
+            )
+
+    return demo
 
 
 if __name__ == "__main__":
-    demo.launch()
+    build_demo().launch()

@@ -35,5 +35,10 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        # Optional: only needed for tests that hit the remote Inference API or
+        # gated models. Add a read token as a repo secret named HF_TOKEN.
+        # Note: secrets are NOT available to workflows triggered by fork PRs.
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
         pytest
