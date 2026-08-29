@@ -1,7 +1,9 @@
+import os
+
 import torch
 import gradio as gr
 #import spaces
-from huggingface_hub import InferenceClient
+from huggingface_hub import InferenceClient, get_token
 from transformers import pipeline
 
 LOCAL_MODEL = "Qwen/Qwen3-0.6B"
@@ -11,7 +13,7 @@ _pipe = None
 
 #install huggingface-cli
 #hf auth login
-#then python
+#then pt
 
 def get_pipe():
     global _pipe
@@ -61,6 +63,22 @@ fancy_css = """
 """
 
 
+def resolve_hf_token(oauth_token):
+    """Return a usable Hugging Face token.
+
+    On a deployed Space, `gr.LoginButton` performs a real OAuth handshake and
+    `oauth_token.token` is a genuine `hf_...` token. Running locally, Gradio
+    mocks OAuth and hands back `mock-oauth-token-for-local-dev`, which the
+    InferenceClient rejects ("Cannot select auto-router when using non-Hugging
+    Face API key"). In that case fall back to a real token from the environment
+    or the CLI login cache (`hf auth login`).
+    """
+    tok = getattr(oauth_token, "token", None)
+    if tok and tok.startswith("hf_"):
+        return tok
+    return os.environ.get("HF_TOKEN") or get_token()
+
+
 #@spaces.GPU
 def local_generate(
     messages,
@@ -86,15 +104,48 @@ def respond(
     max_tokens,
     temperature,
     top_p,
-    use_local_model,
     hf_token: gr.OAuthToken,
 ):
     messages = [{"role": "system", "content": system_message}]
     messages.extend(history)
     messages.append({"role": "user", "content": message})
+    print(hf_token)
 
-    if use_local_model:
-        print("[MODE] local")
+    try:
+        print("[MODE] api")
+
+        token = resolve_hf_token(hf_token)
+        if not token:
+            yield (
+                "⚠️ No Hugging Face token available. Log in with the button, "
+                "or set HF_TOKEN / run `hf auth login` when developing locally."
+            )
+            return
+
+        client = InferenceClient(
+            token=token,
+            model=REMOTE_MODEL,
+        )
+
+        response = ""
+
+        for chunk in client.chat_completion(
+            messages,
+            max_tokens=max_tokens,
+            stream=True,
+            temperature=temperature,
+            top_p=top_p,
+        ):
+            choices = chunk.choices
+            token = ""
+
+            if len(choices) and choices[0].delta.content:
+                token = choices[0].delta.content
+
+            response += token
+            yield response
+    except Exception as e:
+        print(e)
 
         response = local_generate(
             messages,
@@ -105,35 +156,6 @@ def respond(
 
         yield response
         return
-
-    print("[MODE] api")
-
-    if hf_token is None or not getattr(hf_token, "token", None):
-        yield "⚠️ Please log in with your Hugging Face account first."
-        return
-
-    client = InferenceClient(
-        token=hf_token.token,
-        model=REMOTE_MODEL,
-    )
-
-    response = ""
-
-    for chunk in client.chat_completion(
-        messages,
-        max_tokens=max_tokens,
-        stream=True,
-        temperature=temperature,
-        top_p=top_p,
-    ):
-        choices = chunk.choices
-        token = ""
-
-        if len(choices) and choices[0].delta.content:
-            token = choices[0].delta.content
-
-        response += token
-        yield response
 
 
 chatbot = gr.ChatInterface(
@@ -163,10 +185,6 @@ chatbot = gr.ChatInterface(
             value=0.95,
             step=0.05,
             label="Top-p (nucleus sampling)",
-        ),
-        gr.Checkbox(
-            label="Use Local Model",
-            value=False,
         ),
     ],
 )
