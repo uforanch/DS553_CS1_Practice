@@ -106,6 +106,7 @@ def respond(
     top_p,
     hf_token: gr.OAuthToken,
 ):
+    print(message, history, system_message, max_tokens, temperature, top_p)
     messages = [{"role": "system", "content": system_message}]
     messages.extend(history)
     messages.append({"role": "user", "content": message})
