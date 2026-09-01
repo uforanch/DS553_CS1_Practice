@@ -114,6 +114,7 @@ def respond(
 
     try:
         print("[MODE] api")
+        assert 1==-1
 
         token = resolve_hf_token(hf_token)
         if not token:
@@ -146,7 +147,8 @@ def respond(
             response += token
             yield response
     except Exception as e:
-        print(e)
+        #raise gr.Error(e, duration=5)
+        gr.Warning(str(e))
 
         response = local_generate(
             messages,
