@@ -1,4 +1,4 @@
-gradio[oauth]>=5
+gradio[oauth]>=6.26,<7
 huggingface_hub>=0.28
 torch>=2.4
 transformers>=4.56,<5
