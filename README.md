@@ -1,13 +1,11 @@
 ---
-title: {{title}}
-emoji: {{emoji}}
-colorFrom: {{colorFrom}}
-colorTo: {{colorTo}}
-sdk: {{sdk}}
-sdk_version: "{{sdkVersion}}"
-{{#pythonVersion}}
-python_version: "{{pythonVersion}}"
-{{/pythonVersion}}
+title: "practice app"
+emoji: "?"
+colorFrom: "yellow"
+colorTo: "green"
+sdk: "gradio"
+sdk_version: "6.26.0"
+python_version: "3.13"
 app_file: app.py
 pinned: false
 ---
