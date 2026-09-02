@@ -114,7 +114,6 @@ def respond(
 
     try:
         print("[MODE] api")
-        assert 1==-1
 
         token = resolve_hf_token(hf_token)
         if not token:
